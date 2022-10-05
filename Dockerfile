@@ -11,7 +11,7 @@ RUN apt update \
 && apt install nodejs -y \
 && node -v \
 && npm install \
-&& apt remove curl
+&& apt remove -y curl
 
 EXPOSE 8888
 
