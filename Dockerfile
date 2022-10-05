@@ -10,10 +10,11 @@ RUN apt update \
 && curl -fsSL https://deb.nodesource.com/setup_16.x | bash \
 && apt install nodejs -y \
 && node -v \
-&& npm install \
-&& apt remove -y curl
+&& npm install
 
 EXPOSE 8888
+
+RUN apt remove -y curl
 
 CMD "npm" "start"
 
