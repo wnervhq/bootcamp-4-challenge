@@ -1,20 +1,22 @@
 FROM ubuntu:18.04
 
-WORKDIR /usr/src/app
-
-COPY ./ /usr/src/app/
-
 RUN apt update \
-&& apt upgrade \
+&& apt upgrade -y \
 && apt install -y curl \
 && curl -fsSL https://deb.nodesource.com/setup_16.x | bash \
-&& apt install nodejs -y \
-&& node -v \
-&& npm install
+&& apt install nodejs -y
 
-EXPOSE 8888
+WORKDIR /usr/src/app
+
+COPY package*.json ./
+
+RUN npm install
+
+COPY index.js ./
 
 RUN apt remove -y curl
+
+EXPOSE 8888
 
 CMD "npm" "start"
 
