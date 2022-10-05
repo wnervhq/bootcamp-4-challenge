@@ -12,7 +12,7 @@ env:
 jobs:
 
   init:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         node-version: [16.x]
@@ -28,7 +28,7 @@ jobs:
     - run: npm test
 
   deploy_aws:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: init
     steps:
     - uses: actions/checkout@v3

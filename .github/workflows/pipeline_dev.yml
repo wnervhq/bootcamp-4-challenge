@@ -12,7 +12,7 @@ env:
 jobs:
 
   init:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     strategy:
       matrix:
         node-version: [16.x]
@@ -27,7 +27,7 @@ jobs:
     - run: npm test
 
   SECRET:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: init
     name: Secret-Scanner
     steps:
@@ -39,7 +39,7 @@ jobs:
         continue-on-error: true 
 
   trivy-security:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: init
     continue-on-error: true
     steps:
@@ -64,7 +64,7 @@ jobs:
           sarif_file: 'trivy-results.sarif'
 
   build-docker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-18.04
     needs: trivy-security
     steps:
     - uses: actions/checkout@v3
@@ -83,20 +83,27 @@ jobs:
         push: true
         tags: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
 
-  deploy_aws:
-    runs-on: ubuntu-latest
+  deploy_heroku:
+    runs-on: ubuntu-18.04
     needs: build-docker
     steps:
-    - uses: actions/checkout@v3
-    - name: Generate deployment package
-      run: zip -r deploy.zip . -x '*.git*'
-    - name: Deploy to EB
-      uses: einaregilsson/beanstalk-deploy@v20
-      with:
-        aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-        application_name: bootcamp-4-challenge-cicd
-        environment_name: Bootcamp4challengecicd-env
-        version_label: ${{ github.sha }}
-        region: us-east-1
-        deployment_package: deploy.zip
+      - uses: actions/checkout@v3
+      - uses: akhileshns/heroku-deploy@v3.12.12
+        with:
+          heroku_api_key: ${{secrets.HEROKU_API_KEY}}
+          heroku_app_name: "${{ env.IMAGE_NAME }}"
+          heroku_email: "${{ env.REGISTRY_MAIL }}"
+          usedocker: true  
+
+  dast_scan:
+    runs-on: ubuntu-18.04
+    needs: deploy_heroku
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: master
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.7.0
+        with:
+          target: 'https://${{ env.IMAGE_NAME }}.herokuapp.com/'
