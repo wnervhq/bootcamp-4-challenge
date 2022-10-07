@@ -1,6 +1,6 @@
 var express = require('express');
 
-const PORT = 8888;
+const PORT = process.env.PORT || 8888;
 
 var app = express();
 
@@ -14,5 +14,12 @@ app.get('/:name', function (req, res) {
   res.send('Hola ' + req.params.name);
 });
 
-app.listen(PORT);
+const server = app.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
+
+process.on('SIGTERM', () => {
+  console.log('SIGTERM signal received: closing HTTP server')
+  server.close(() => {
+    console.log('HTTP server closed')
+  })
+})
